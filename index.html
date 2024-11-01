@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ver Datos de Notion</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap">
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: #f0f0f0;
+            color: #333;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            margin: 0;
+        }
+
+        h1 {
+            color: #4CAF50;
+            margin-bottom: 20px;
+        }
+
+        form {
+            background-color: #ffffff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+            width: 300px;
+            text-align: center;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 700;
+        }
+
+        input[type="text"] {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            margin-bottom: 10px;
+        }
+
+        button {
+            background-color: #4CAF50;
+            color: #ffffff;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 700;
+            transition: background-color 0.3s;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+
+        #phoneNumbersList {
+            width: 80%;
+            max-width: 600px;
+            background-color: #ffffff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            max-height: 400px;
+            overflow-y: auto;
+            margin-bottom: 20px;
+        }
+
+        .phone-number-item {
+            padding: 10px;
+            border-bottom: 1px solid #e0e0e0;
+            cursor: pointer;
+        }
+
+        .phone-number-item:hover {
+            background-color: #e0f7e9;
+        }
+
+        #results {
+            width: 80%;
+            max-width: 600px;
+            background-color: #ffffff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .result-item {
+            padding: 15px;
+            border-bottom: 1px solid #e0e0e0;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .result-item:last-child {
+            border-bottom: none;
+        }
+
+        .result-item p {
+            margin: 5px 0;
+        }
+
+        .result-item p strong {
+            color: #4CAF50;
+        }
+
+        .read {
+            text-align: right;
+            background-color: #e0f7e9;
+            border-radius: 15px 0 15px 15px;
+            padding: 15px;
+            margin: 10px 0;
+            width: fit-content;
+            align-self: flex-end;
+            font-weight: bold;
+        }
+
+        .received {
+            text-align: left;
+            background-color: #e7e7e7;
+            border-radius: 0 15px 15px 15px;
+            padding: 15px;
+            margin: 10px 0;
+            width: fit-content;
+            align-self: flex-start;
+            font-weight: bold;
+        }
+
+        .message-date {
+            font-size: 0.85em;
+            color: #666;
+        }
+
+        .replying-to {
+            background-color: #f0f0f0;
+            border-left: 4px solid #4CAF50;
+            padding: 10px;
+            margin: 5px 0;
+            font-style: italic;
+            color: #333;
+        }
+
+        #loading {
+            display: none;
+            margin-bottom: 20px;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #4CAF50;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <h1>Ver Backup de Erick Gomez</h1>
+    <div id="loading" class="spinner"></div>
+    <form id="phoneForm">
+        <label for="phoneNumber">Ingrese el número de teléfono:</label>
+        <input type="text" id="phoneNumber" placeholder="Ej: +123456789" />
+    </form>
+
+    <div id="phoneNumbersList"></div>
+    <div id="results"></div>
+
+    <script>
+        let allPhoneNumbers = [];
+
+        async function fetchUniquePhoneNumbers() {
+            try {
+                document.getElementById('loading').style.display = 'block';
+                const response = await fetch('http://localhost:3001/unique-phone-numbers', {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    allPhoneNumbers = data.uniquePhoneNumbers;
+                    displayPhoneNumbers(allPhoneNumbers);
+                } else {
+                    alert('Error al obtener los números de teléfono únicos.');
+                }
+            } catch (error) {
+                console.error('Error al obtener los números de teléfono únicos:', error);
+                alert('Error al obtener los números de teléfono únicos: ' + error.message);
+            } finally {
+                document.getElementById('loading').style.display = 'none';
+            }
+        }
+
+        function displayPhoneNumbers(phoneNumbers) {
+            const phoneNumbersList = document.getElementById('phoneNumbersList');
+            phoneNumbersList.innerHTML = '<h2>Números de Teléfono Únicos:</h2>';
+
+            phoneNumbers.forEach(phoneNumber => {
+                const itemDiv = document.createElement('div');
+                itemDiv.classList.add('phone-number-item');
+                itemDiv.textContent = phoneNumber;
+                itemDiv.addEventListener('click', () => fetchPhoneNumberDetails(phoneNumber));
+                phoneNumbersList.appendChild(itemDiv);
+            });
+        }
+
+        async function fetchPhoneNumberDetails(phoneNumber) {
+            try {
+                document.getElementById('loading').style.display = 'block';
+                const response = await fetch(`http://localhost:3001/fetch?phoneNumber=${encodeURIComponent(phoneNumber)}`, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    displayPhoneNumberDetails(phoneNumber, data);
+                } else {
+                    const errorMessage = await response.json();
+                    alert(`Error: ${errorMessage.error}`);
+                }
+            } catch (error) {
+                console.error('Error al enviar la solicitud:', error);
+                alert('Error al enviar la solicitud: ' + error.message);
+            } finally {
+                document.getElementById('loading').style.display = 'none';
+            }
+        }
+
+        function displayPhoneNumberDetails(phoneNumber, data) {
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.innerHTML = `<h2>Detalles del Número: ${phoneNumber}</h2>`;
+
+            data.forEach(item => {
+                const itemDiv = document.createElement('div');
+                itemDiv.classList.add('result-item');
+                const messageClass = item["Status"] === "read" ? 'read' : 'received';
+
+                let messageContent = '';
+                if (item["Replying to"]) {
+                    messageContent += `<div class="replying-to"><strong>Replying to:</strong> ${item["Replying to"]}</div>`;
+                }
+                if (item["Text"]) {
+                    messageContent += `<p class="${messageClass}"><strong>Sender Name:</strong> ${item["Sender Name"] || 'Desconocido'} <br><strong>Text:</strong> ${item["Text"]}</p>`;
+                }
+
+                if (item["Message Date"]) messageContent += `<p class="message-date">${item["Message Date"]}</p>`;
+
+                itemDiv.innerHTML = messageContent;
+                if (messageContent) {
+                    resultsDiv.appendChild(itemDiv);
+                }
+            });
+        }
+
+        document.getElementById('phoneNumber').addEventListener('input', function(event) {
+            const filterValue = event.target.value.trim();
+            const filteredNumbers = allPhoneNumbers.filter(number => number.includes(filterValue));
+            displayPhoneNumbers(filteredNumbers);
+        });
+
+        // Fetch unique phone numbers on page load
+        fetchUniquePhoneNumbers();
+    </script>
+</body>
+</html>

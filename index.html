@@ -39,7 +39,7 @@
         }
 
         input[type="text"] {
-            width: 100%;
+            width: 90%;
             padding: 10px;
             border: 1px solid #ccc;
             border-radius: 4px;
@@ -170,7 +170,7 @@
     </style>
 </head>
 <body>
-    <h1>Ver Backup de Erick Gomez</h1>
+    <h1>Consultor Backup de Erick Gomez</h1>
     <div id="loading" class="spinner"></div>
     <form id="phoneForm">
         <label for="phoneNumber">Ingrese el número de teléfono:</label>
@@ -186,7 +186,7 @@
         async function fetchUniquePhoneNumbers() {
             try {
                 document.getElementById('loading').style.display = 'block';
-                const response = await fetch('http://localhost:3001/unique-phone-numbers', {
+                const response = await fetch('https://erickgomezbackup.onrender.com/unique-phone-numbers', {
                     method: 'GET',
                     headers: {
                         'Content-Type': 'application/json'
@@ -224,7 +224,7 @@
         async function fetchPhoneNumberDetails(phoneNumber) {
             try {
                 document.getElementById('loading').style.display = 'block';
-                const response = await fetch(`http://localhost:3001/fetch?phoneNumber=${encodeURIComponent(phoneNumber)}`, {
+                const response = await fetch(`https://erickgomezbackup.onrender.com/fetch?phoneNumber=${encodeURIComponent(phoneNumber)}`, {
                     method: 'GET',
                     headers: {
                         'Content-Type': 'application/json'
@@ -247,30 +247,31 @@
         }
 
         function displayPhoneNumberDetails(phoneNumber, data) {
-            const resultsDiv = document.getElementById('results');
-            resultsDiv.innerHTML = `<h2>Detalles del Número: ${phoneNumber}</h2>`;
+    const resultsDiv = document.getElementById('results');
+    resultsDiv.innerHTML = `<h2>Detalles del Número: ${phoneNumber}</h2>`;
 
-            data.forEach(item => {
-                const itemDiv = document.createElement('div');
-                itemDiv.classList.add('result-item');
-                const messageClass = item["Status"] === "read" ? 'read' : 'received';
+    data.forEach(item => {
+        const itemDiv = document.createElement('div');
+        itemDiv.classList.add('result-item');
+        const messageClass = item.status === "read" ? 'read' : 'received';
 
-                let messageContent = '';
-                if (item["Replying to"]) {
-                    messageContent += `<div class="replying-to"><strong>Replying to:</strong> ${item["Replying to"]}</div>`;
-                }
-                if (item["Text"]) {
-                    messageContent += `<p class="${messageClass}"><strong>Sender Name:</strong> ${item["Sender Name"] || 'Desconocido'} <br><strong>Text:</strong> ${item["Text"]}</p>`;
-                }
-
-                if (item["Message Date"]) messageContent += `<p class="message-date">${item["Message Date"]}</p>`;
-
-                itemDiv.innerHTML = messageContent;
-                if (messageContent) {
-                    resultsDiv.appendChild(itemDiv);
-                }
-            });
+        let messageContent = '';
+        if (item.replyingTo) {
+            messageContent += `<div class="replying-to"><strong>Replying to:</strong> ${item.replyingTo}</div>`;
         }
+        if (item.text) {
+            messageContent += `<p class="${messageClass}"><strong>Sender Name:</strong> ${item.senderName || 'Desconocido'} <br><strong>Text:</strong> ${item.text}</p>`;
+        }
+
+        if (item.messageDate) messageContent += `<p class="message-date">${item.messageDate}</p>`;
+
+        itemDiv.innerHTML = messageContent;
+        if (messageContent) {
+            resultsDiv.appendChild(itemDiv);
+        }
+    });
+}
+
 
         document.getElementById('phoneNumber').addEventListener('input', function(event) {
             const filterValue = event.target.value.trim();

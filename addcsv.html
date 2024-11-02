@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cargar CSV a MongoDB</title>
+</head>
+<body>
+  <h1>Cargar CSV a MongoDB</h1>
+  <form id="uploadForm">
+    <label for="csvFile">Selecciona el archivo CSV:</label>
+    <input type="file" id="csvFile" name="csvFile" accept=".csv" required />
+    <button type="submit">Subir CSV</button>
+  </form>
+  <p id="message"></p>
+
+  <script>
+    document.getElementById('uploadForm').addEventListener('submit', async (event) => {
+      event.preventDefault();
+      
+      const csvFile = document.getElementById('csvFile').files[0];
+      if (!csvFile) {
+        document.getElementById('message').textContent = 'Por favor, selecciona un archivo CSV';
+        return;
+      }
+      
+      const formData = new FormData();
+      formData.append('csvFile', csvFile);
+
+      try {
+        const response = await fetch('http://localhost:5000/upload-csv', {
+          method: 'POST',
+          body: formData
+        });
+        
+        const result = await response.json();
+        if (response.ok) {
+          document.getElementById('message').textContent = 'Archivo CSV subido con éxito';
+        } else {
+          document.getElementById('message').textContent = `Error: ${result.error}`;
+        }
+      } catch (error) {
+        document.getElementById('message').textContent = `Error de conexión: ${error.message}`;
+      }
+    });
+  </script>
+</body>
+</html>
